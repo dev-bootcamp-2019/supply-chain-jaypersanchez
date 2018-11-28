@@ -7,7 +7,11 @@ import "../contracts/SupplyChain.sol";
 contract TestSupplyChain {
 
     // Test for failing conditions in this contracts
+    
     // test that every modifier is working
+    it("should add an item with the provided name and price", async() => {
+    
+    }
 
     // buyItem
 
