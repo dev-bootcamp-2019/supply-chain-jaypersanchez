@@ -45,10 +45,10 @@ contract SupplyChain {
 
   /* Create 4 events with the same name as each possible State (see above)
     Each event should accept one argument, the sku*/
-  event EVT_ForSale(uint indexed sku, State _state);
-  event EVT_Sold(uint indexed sku, State _state);
-  event EVT_Shipped(uint indexed sku, State _state);
-  event EVT_Received(uint indexed sku, State _state);
+  event ForSale(uint indexed sku, State _state);
+  event Sold(uint indexed sku, State _state);
+  event Shipped(uint indexed sku, State _state);
+  event Received(uint indexed sku, State _state);
 
 /* Create a modifer that checks if the msg.sender is the owner of the contract */
   modifier isContractOwner(address _address) { 
@@ -106,10 +106,10 @@ contract SupplyChain {
        skuCount = 0;
   }
 
-  function addItem(string _name, uint _price) public {
-    emit EVT_ForSale(skuCount, State.ForSale);
-    items[skuCount] = Item({name: _name, sku: skuCount, price: _price, state: State.ForSale, seller: msg.sender, buyer: 0});
+  function addItem(string _name, uint _price, uint256 _sku) public {
+    items[skuCount] = Item({name: _name, sku: _sku, price: _price, state: State.ForSale, seller: msg.sender, buyer: 0});
     skuCount = skuCount + 1;
+    emit ForSale(skuCount, State.ForSale);
   }
 
   /* Add a keyword so the function can be paid. This function should transfer money
@@ -118,15 +118,13 @@ contract SupplyChain {
     if the buyer paid enough, and check the value after the function is called to make sure the buyer is
     refunded any excess ether sent. Remember to call the event associated with this function!*/
 
-  function buyItem(uint256 _sku) public payable {
+  function buyItem(uint _sku) public payable checkValue(_sku) {
     //make sure item.sku is in State of ForSale
     require( items[_sku].state == State.ForSale && (items[_sku].buyer).balance >= items[_sku].price );
-    //transfer money from buyer to seller
-    checkValue(_sku);
     //set state to Sold
     items[_sku].state = State.Sold;
     //emit appropriate event
-    emit EVT_Sold(_sku, State.Sold);
+    emit Sold(_sku, State.Sold);
     
   }
 
@@ -135,7 +133,7 @@ contract SupplyChain {
   function shipItem(uint256 _sku) public {
     require(items[_sku].state == State.Sold && items[_sku].seller == msg.sender);
     items[_sku].state = State.Shipped;
-    emit EVT_Shipped(_sku, State.Shipped);
+    emit Shipped(_sku, State.Shipped);
   }
 
   /* Add 2 modifiers to check if the item is shipped already, and that the person calling this function
@@ -143,7 +141,7 @@ contract SupplyChain {
   function receiveItem(uint256 _sku) public {
     require(items[_sku].state == State.Shipped && items[_sku].seller == msg.sender);
     items[_sku].state = State.Received;
-    emit EVT_Received(_sku, State.Received);
+    emit Received(_sku, State.Received);
   }
 
   /* We have these functions completed so we can run tests, just ignore it :) */
